@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Function Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Protein Function Prediction</h1>
+            <p class="subtitle">Predict GO terms based on Protein Sequences or Features</p>
+        </div>
+    </header>
+
+    <!-- File Upload Form -->
+    <section class="upload-section">
+        <div class="container">
+            <h2>Upload Your CSV File</h2>
+            <form action="/predict" method="post" enctype="multipart/form-data" class="upload-form">
+                <input type="file" id="file" name="file" accept=".csv" required>
+                <button type="submit" class="submit-button">Submit</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Prediction Results -->
+    <section id="results" class="results-section">
+        <!-- Table will be rendered here -->
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Protein Function Prediction</p>
+        </div>
+    </footer>
+
+    <script>
+        const form = document.querySelector('form');
+        form.onsubmit = async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            const resultsDiv = document.getElementById('results');
+            
+            if (result.error) {
+                resultsDiv.innerHTML = `<p style="color: red;">Error: ${result.error}</p>`;
+            } else {
+                let tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Protein ID</th>
+                                <th>Predicted GO Term</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                result.forEach((prediction) => {
+                    tableHtml += `
+                        <tr>
+                            <td>${prediction.protein_id}</td>
+                            <td>${prediction.predicted_go_term}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `</tbody></table>`;
+                resultsDiv.innerHTML = tableHtml;
+            }
+        };
+    </script>
+</body>
+</html>
